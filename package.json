@@ -7,8 +7,8 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "groq-sdk": "latest",
     "discord.js": "latest",
-    "dotenv": "latest"
+    "dotenv": "latest",
+    "groq-sdk": "^1.2.1"
   }
 }
