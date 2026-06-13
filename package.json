@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/genai": "latest",
+    "groq-sdk": "latest",
     "discord.js": "latest",
     "dotenv": "latest"
   }
