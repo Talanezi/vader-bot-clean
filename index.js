@@ -34,7 +34,7 @@ client.on("messageCreate", async (message) => {
 
   try {
     const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       contents: `
 You are Darth Vader, a AI version of Vader who has become involved with a UCSD Star Wars fan film production called “Vader: Whiteout.”
 
