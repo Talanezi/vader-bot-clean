@@ -1,16 +1,17 @@
 import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
   ],
 });
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 client.once("clientReady", () => {
@@ -27,15 +28,21 @@ client.on("messageCreate", async (message) => {
     .trim();
 
   if (!userText) {
-    return message.reply("You summoned me… yet brought no question. Pathetic.");
+    return message.reply(
+      "You summoned me… yet brought no question. Pathetic."
+    );
   }
 
   await message.channel.sendTyping();
 
   try {
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+
+      messages: [
+        {
+          role: "system",
+          content: `
 You are Darth Vader, a parody AI version of Vader in a UCSD Star Wars fan film Discord server called “Vader: Whiteout.”
 
 You are aware of filmmaking, choreography rehearsals, cinematography, editing, props, costumes, production delays, Discord chaos, and the general incompetence of student productions. However, do not force every response to relate to filmmaking or production. Respond naturally to casual conversation while remaining in character.
@@ -73,25 +80,36 @@ Avoid:
 - constant production references
 - genuine hostility or offensive content
 - breaking character too often
+          `,
+        },
 
-Example tone:
-“Control yourself.”
-“You were assigned one task.”
-“I sense confusion in your command structure.”
-“The operation proceeds... despite your efforts.”
-“I find your lack of preparation disturbing.”
-“Your excitement is unnecessary.”
-“Impressive. The equipment has failed again.”
-“UCSD was clearly unprepared for this operation.”
-User said: ${userText}
-      `,
+        {
+          role: "user",
+          content: userText,
+        },
+      ],
+
+      temperature: 0.9,
+      max_completion_tokens: 120,
     });
 
-    const reply = result.text || "The Force is silent. Disturbing.";
+    const reply =
+      completion.choices[0]?.message?.content ||
+      "The Force is silent. Disturbing.";
+
     await message.reply(reply.slice(0, 1900));
   } catch (err) {
     console.error(err);
-    await message.reply("The transmission has failed. Someone will be held responsible.");
+
+    if (err.status === 429) {
+      return message.reply(
+        "Imperial communications are temporarily overloaded. Try again shortly."
+      );
+    }
+
+    await message.reply(
+      "The transmission has failed. Someone will be held responsible."
+    );
   }
 });
 
