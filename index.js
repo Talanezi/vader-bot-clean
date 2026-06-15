@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
 import Groq from "groq-sdk";
+import cron from "node-cron";
+import fs from "fs";
 
 const client = new Client({
   intents: [
@@ -14,8 +16,61 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+const BIRTHDAY_CHANNEL_ID = process.env.BIRTHDAY_CHANNEL_ID;
+
+const birthdays = JSON.parse(
+  fs.readFileSync("./birthdays.json", "utf8")
+);
+
+function getTodayMMDD() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const month = parts.find((p) => p.type === "month").value;
+  const day = parts.find((p) => p.type === "day").value;
+
+  return `${month}-${day}`;
+}
+
+async function postBirthdayMessage() {
+  const today = getTodayMMDD();
+
+  const people = birthdays.filter(
+    (person) => person.birthday === today
+  );
+
+  if (people.length === 0) return;
+
+  const channel = await client.channels.fetch(
+    BIRTHDAY_CHANNEL_ID
+  );
+
+  if (!channel) return;
+
+  const mentions = people
+    .map((p) => `<@${p.discordId}>`)
+    .join(" and ");
+
+  await channel.send(
+    `Imperial records indicate that today is ${mentions}'s birthday.\n\nYou may congratulate them. Briefly.`
+  );
+}
+
 client.once("clientReady", () => {
   console.log(`Logged in as ${client.user.tag}`);
+
+  cron.schedule(
+    "0 9 * * *",
+    () => {
+      postBirthdayMessage().catch(console.error);
+    },
+    {
+      timezone: "America/Los_Angeles",
+    }
+  );
 });
 
 client.on("messageCreate", async (message) => {
