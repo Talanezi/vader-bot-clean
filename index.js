@@ -55,8 +55,8 @@ async function postBirthdayMessage() {
     .join(" and ");
 
   await channel.send(
-    `Imperial records indicate that today is ${mentions}'s birthday.\n\nYou may congratulate them. Briefly.`
-  );
+  `Attention, crew.\n\nToday is ${mentions}'s birthday.\n\nLord Vader has been informed.\n\nProceed with the celebration.`
+);
 }
 
 client.once("clientReady", () => {
