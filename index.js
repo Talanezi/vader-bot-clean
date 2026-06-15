@@ -63,7 +63,7 @@ client.once("clientReady", () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   cron.schedule(
-    "* * * * *",
+    "5 20 * * *",
     () => {
       postBirthdayMessage().catch(console.error);
     },
