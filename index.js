@@ -92,7 +92,7 @@ client.on("messageCreate", async (message) => {
 
   try {
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
 
       messages: [
         {
@@ -145,7 +145,9 @@ Avoid:
       ],
 
       temperature: 0.9,
-      max_completion_tokens: 120,
+      reasoning_effort: "low",
+      include_reasoning: false,
+      max_completion_tokens: 256,
     });
 
     const reply =
